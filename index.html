@@ -35,12 +35,11 @@
     height: 100dvh;
     overflow-y: auto;
     scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
     scroll-padding-top: 52px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    #feed { scroll-behavior: auto; }
-  }
+  /* snap is turned off while a programmatic scroll animates — WebKit
+     cancels script scrolls inside a mandatory-snap container */
+  #feed.no-snap { scroll-snap-type: none; }
   section.card {
     min-height: 100dvh;
     scroll-snap-align: start;
@@ -83,6 +82,8 @@
     border: 0;
     font: inherit;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     background: var(--orange);
     color: #fff;
     font-weight: 700;
@@ -532,8 +533,17 @@
 <script>
 (function () {
   var feed = document.getElementById('feed');
+  var header = document.querySelector('header');
   var pill = document.getElementById('nextPill');
   var sections = Array.prototype.slice.call(document.querySelectorAll('section[data-end]'));
+
+  // Keep snap positions aligned with the real header height (safe-area
+  // insets make it taller than the CSS default on notched phones).
+  function syncPadding() {
+    feed.style.scrollPaddingTop = header.offsetHeight + 'px';
+  }
+  window.addEventListener('resize', syncPadding);
+  syncPadding();
 
   function currentEvent() {
     var now = Date.now();
@@ -590,7 +600,27 @@
 
   function scrollToActive(smooth) {
     if (!active) return;
-    active.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    var target = active.getBoundingClientRect().top - feed.getBoundingClientRect().top
+               + feed.scrollTop - header.offsetHeight;
+    target = Math.max(0, Math.min(target, feed.scrollHeight - feed.clientHeight));
+    feed.classList.add('no-snap');
+    var done = function () {
+      requestAnimationFrame(function () { feed.classList.remove('no-snap'); });
+    };
+    if (!smooth || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      feed.scrollTop = target;
+      done();
+      return;
+    }
+    var start = feed.scrollTop, dist = target - start, t0 = null, dur = 450;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      feed.scrollTop = start + dist * e;
+      if (p < 1) requestAnimationFrame(step); else done();
+    }
+    requestAnimationFrame(step);
   }
 
   pill.addEventListener('click', function () { update(); scrollToActive(true); });
