@@ -48,7 +48,7 @@
     flex-direction: column;
     justify-content: center;
     gap: 14px;
-    padding: 72px 22px 40px;
+    padding: 68px 22px 32px;
     max-width: 560px;
     margin: 0 auto;
     position: relative;
@@ -99,6 +99,7 @@
   #nextPill.now { background: var(--now); box-shadow: 0 2px 8px rgba(26,127,55,.35); }
 
   /* ---------- typography ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .day-chip {
     align-self: flex-start;
     background: var(--navy);
@@ -110,6 +111,16 @@
     padding: 6px 12px;
     border-radius: 6px;
   }
+  .uni {
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+  .uni-blue { background: #274b9f; color: #fff; }
+  .uni-white { background: #fff; color: var(--orange-dark); border: 1.5px solid var(--orange); }
   .kicker {
     font-size: 15px;
     font-weight: 700;
@@ -188,7 +199,7 @@
   .map-wrap { display: flex; flex-direction: column; gap: 10px; }
   .map-frame {
     width: 100%;
-    height: 170px;
+    height: 148px;
     border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
@@ -328,7 +339,7 @@
            data-end="2026-07-10T16:00:00-05:00"
            data-short="Merton game">
     <span class="badge">Up next</span>
-    <span class="day-chip">Fri · July 10</span>
+    <div class="chips"><span class="day-chip">Fri · July 10</span><span class="uni uni-blue">🎽 Blue · blue socks</span></div>
     <p class="kicker">Game 1 · vs Merton Fillies Red</p>
     <div class="time-block">
       <span class="time-label">Players arrive</span>
@@ -378,7 +389,7 @@
            data-end="2026-07-11T10:00:00-05:00"
            data-short="Nitro game">
     <span class="badge">Up next</span>
-    <span class="day-chip">Sat · July 11 — 3 games!</span>
+    <div class="chips"><span class="day-chip">Sat · July 11 — 3 games!</span><span class="uni uni-white">🎽 White · orange socks</span></div>
     <p class="kicker">Game 2 · vs Nitro 10U</p>
     <div class="time-block">
       <span class="time-label">Players arrive</span>
@@ -404,7 +415,7 @@
            data-end="2026-07-11T14:30:00-05:00"
            data-short="Firebirds game">
     <span class="badge">Up next</span>
-    <span class="day-chip">Sat · July 11</span>
+    <div class="chips"><span class="day-chip">Sat · July 11</span><span class="uni uni-white">🎽 White · orange socks</span></div>
     <p class="kicker">Game 3 · vs Columbus Firebirds</p>
     <div class="time-block">
       <span class="time-label">Players arrive</span>
@@ -427,7 +438,7 @@
            data-end="2026-07-11T18:30:00-05:00"
            data-short="Bracket game">
     <span class="badge">Up next</span>
-    <span class="day-chip">Sat · July 11</span>
+    <div class="chips"><span class="day-chip">Sat · July 11</span><span class="uni uni-white">🎽 White · orange socks</span></div>
     <p class="kicker">Game 4 · Bracket game</p>
     <div class="time-block">
       <span class="time-label">Players arrive</span>
@@ -469,7 +480,7 @@
            data-end="2026-07-12T21:00:00-05:00"
            data-short="Championship day">
     <span class="badge">Up next</span>
-    <span class="day-chip">Sun · July 12</span>
+    <div class="chips"><span class="day-chip">Sun · July 12</span><span class="uni uni-blue">🎽 Blue · blue socks</span></div>
     <p class="kicker">Championship day 🏆</p>
     <div class="time-block">
       <span class="time-label">Bracket game</span>
@@ -511,6 +522,7 @@
       <summary>🧳 Packing list</summary>
       <ul>
         <li><strong>Games:</strong> gear (cleats, helmet, glove, bat, bag), uniforms, water bottles, camp chairs, sunscreen, sunglasses, hat</li>
+        <li><strong>Jerseys:</strong> Fri blue/blue socks · Sat white/orange socks · Sun blue/blue socks</li>
         <li><strong>The Union (Sat eve):</strong> towel &amp; suit, change of clothes, picnic blanket</li>
         <li><strong>Hotel:</strong> swimsuits &amp; towels, casual clothes for Friday dinner, card/cash for breakfast</li>
         <li><strong>Money:</strong> Venmo/Zelle ready for the coach gift</li>
