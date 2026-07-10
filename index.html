@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdfbf7">
+<title>Express 10U Orange · Sun Prairie</title>
+<meta name="description" content="Evanston Express 10U Orange — Sun Prairie tournament weekend guide. What's next, where to be, and when.">
+<style>
+  /* Evanston Express: orange + navy (Evanston's traditional colors) */
+  :root {
+    --orange: #f97316;
+    --orange-dark: #cf5a0a;
+    --navy: #16294d;
+    --ink: #16294d;
+    --muted: #5b6579;
+    --bg: #fdfbf7;
+    --card: #ffffff;
+    --stitch: #d94f3d;
+    --line: #e7e3d9;
+    --now: #1a7f37;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  /* ---------- scroll feed ---------- */
+  #feed {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    scroll-padding-top: 52px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #feed { scroll-behavior: auto; }
+  }
+  section.card {
+    min-height: 100dvh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 72px 22px 40px;
+    max-width: 560px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ---------- sticky header ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    background: rgba(253, 251, 247, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  header .team {
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  #nextPill {
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    background: var(--orange);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 8px rgba(255, 106, 19, 0.35);
+  }
+  #nextPill.now { background: var(--now); box-shadow: 0 2px 8px rgba(26,127,55,.35); }
+
+  /* ---------- typography ---------- */
+  .day-chip {
+    align-self: flex-start;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .kicker {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 { font-size: clamp(34px, 9vw, 52px); line-height: 1.05; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(28px, 8vw, 44px); line-height: 1.08; letter-spacing: -0.02em; }
+
+  .time-block { display: flex; flex-direction: column; gap: 2px; }
+  .time-label {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--orange-dark);
+  }
+  .time-big {
+    font-size: clamp(56px, 17vw, 92px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .time-big small { font-size: 0.38em; font-weight: 800; letter-spacing: 0; }
+  .time-sub {
+    font-size: clamp(20px, 5.5vw, 26px);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .time-sub b { color: var(--orange-dark); }
+
+  .where {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .where strong { color: var(--ink); }
+
+  .note {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    padding-left: 12px;
+  }
+  .note strong { color: var(--ink); }
+  .note.warn { border-left-color: var(--orange); }
+
+  ul.plain { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  ul.plain li { font-size: 17px; line-height: 1.45; padding-left: 28px; position: relative; }
+  ul.plain li::before { content: "🥎"; position: absolute; left: 0; top: 1px; font-size: 15px; }
+
+  a { color: var(--orange-dark); font-weight: 700; text-underline-offset: 3px; }
+
+  /* NOW / NEXT badge */
+  .badge {
+    display: none;
+    align-self: flex-start;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--orange);
+    padding: 5px 11px;
+    border-radius: 999px;
+  }
+  section.up-next .badge { display: inline-block; }
+  section.happening .badge { background: var(--now); }
+  section.up-next { background: linear-gradient(180deg, rgba(255,106,19,0.06), transparent 45%); }
+
+  /* ---------- map ---------- */
+  .map-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .map-frame {
+    width: 100%;
+    height: 170px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--card);
+  }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .map-btns { display: flex; gap: 8px; }
+  .map-btns a {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    background: var(--card);
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 12px 8px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .map-btns a:active { background: var(--ink); color: #fff; }
+
+  /* ---------- stitch divider (a little softball whimsy) ---------- */
+  .stitches {
+    height: 26px;
+    flex: none;
+    background:
+      radial-gradient(circle 34px at 50% -22px, transparent 30px, var(--stitch) 30px 32px, transparent 32px),
+      radial-gradient(circle 34px at 50% 48px, transparent 30px, var(--stitch) 30px 32px, transparent 32px);
+    background-size: 34px 26px;
+    background-repeat: repeat-x;
+    opacity: 0.55;
+    -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+    mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+  }
+
+  /* ---------- hero ---------- */
+  #hero { text-align: left; }
+  #hero .ball {
+    font-size: 64px;
+    line-height: 1;
+    animation: bounce 2.6s ease-in-out infinite;
+    align-self: flex-start;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(24deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { #hero .ball { animation: none; } }
+  .golden-rules { display: flex; flex-direction: column; gap: 12px; }
+  .rule {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .rule b { color: var(--orange-dark); }
+  .swipe-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- reference section ---------- */
+  details {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  details + details { margin-top: 0; }
+  summary {
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font-size: 22px; color: var(--orange-dark); }
+  details[open] summary::after { content: "–"; }
+  details ul { margin: 12px 0 4px 20px; display: flex; flex-direction: column; gap: 8px; }
+  details li { font-size: 16px; line-height: 1.45; }
+  .contact {
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .contact a { font-size: 20px; }
+
+  footer-note { display: block; text-align: center; font-size: 15px; color: var(--muted); font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="feed">
+  <header>
+    <span class="team">Express 10U 🧡</span>
+    <button id="nextPill" type="button">Loading…</button>
+  </header>
+
+  <!-- HERO -->
+  <section class="card" id="hero">
+    <span class="ball">🥎</span>
+    <h1>GO EXPRESS!</h1>
+    <p class="kicker">Sun Prairie, WI · July 10–12</p>
+    <div class="golden-rules">
+      <div class="rule">⏰ <b>Players arrive 1 hour before game time.</b> Games can start up to <b>30 minutes early</b> — don't cut it close.</div>
+      <div class="rule">🍎 <b>Strict no carry-in rule at all fields.</b> Players: water only. No Gatorade, seeds, gum, or food. Fans: keep food &amp; coolers in the parking lot — plan on concessions.</div>
+    </div>
+    <div class="stitches"></div>
+    <p class="swipe-hint">Swipe up for what's next ↑</p>
+  </section>
+
+  <!-- THURSDAY -->
+  <section class="card" id="thu"
+           data-end="2026-07-09T23:59:59-05:00"
+           data-short="To-dos">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Thu · July 9</span>
+    <h2>Before you pack…</h2>
+    <ul class="plain">
+      <li><strong>Coach gift</strong> (optional) by end of day: Venmo <strong>@anniewrigs</strong> (0189) or Zelle <strong>anne.wrigley@gmail.com</strong></li>
+      <li>Fill out the <a href="https://forms.gle/x4ExcYoZDqxpPWJ3A">Friday dinner form</a></li>
+      <li>Turn ON notifications in <strong>SportsEngine</strong> and <strong>Team Sideline</strong> — game times can change</li>
+    </ul>
+    <p class="note warn"><strong>Driving up:</strong> preview your route. If the app shows <strong>Exit 244</strong>, drag the route in Google Maps — or just stay on until <strong>135B</strong>.</p>
+  </section>
+
+  <!-- FRIDAY GAME -->
+  <section class="card" id="fri-game"
+           data-when="2026-07-10T13:00:00-05:00"
+           data-end="2026-07-10T16:00:00-05:00"
+           data-short="Merton game">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Fri · July 10</span>
+    <p class="kicker">Game 1 · vs Merton Fillies Red</p>
+    <div class="time-block">
+      <span class="time-label">Players arrive</span>
+      <span class="time-big">1:00<small> PM</small></span>
+      <span class="time-sub">Game at <b>2:00 PM</b></span>
+    </div>
+    <p class="where"><strong>Thebco Field 1</strong> — Sheehan Park complex, Sun Prairie</p>
+    <div class="map-wrap">
+      <div class="map-frame"><iframe loading="lazy" title="Map to Sheehan Park, Sun Prairie"
+        src="https://maps.google.com/maps?q=Sheehan%20Park%2C%20Sun%20Prairie%2C%20WI&z=14&output=embed"></iframe></div>
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note">After the game: back to the <strong>Courtyard Marriott</strong> for <strong>pool time</strong> 🏊</p>
+  </section>
+
+  <!-- FRIDAY DINNER -->
+  <section class="card" id="fri-dinner"
+           data-when="2026-07-10T18:30:00-05:00"
+           data-end="2026-07-10T21:30:00-05:00"
+           data-short="Team dinner">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Fri · July 10</span>
+    <p class="kicker">Team dinner 🍕</p>
+    <div class="time-block">
+      <span class="time-label">Around</span>
+      <span class="time-big">6:30<small> PM</small></span>
+      <span class="time-sub">Hotel <b>common area</b></span>
+    </div>
+    <p class="where"><strong>Courtyard Marriott Madison East</strong> — the team hotel</p>
+    <div class="map-wrap">
+      <div class="map-frame"><iframe loading="lazy" title="Map to Courtyard Marriott Madison East"
+        src="https://maps.google.com/maps?q=Courtyard%20by%20Marriott%20Madison%20East&z=13&output=embed"></iframe></div>
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Courtyard+by+Marriott+Madison+East">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Courtyard+by+Marriott+Madison+East">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note">Food is delivered / picked up. Cost is split evenly and totaled after the tournament (due to Annie, ~$20–25/family with swag bags).</p>
+  </section>
+
+  <!-- SATURDAY GAME 1 -->
+  <section class="card" id="sat-game1"
+           data-when="2026-07-11T07:00:00-05:00"
+           data-end="2026-07-11T10:00:00-05:00"
+           data-short="Nitro game">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Sat · July 11 — 3 games!</span>
+    <p class="kicker">Game 2 · vs Nitro 10U</p>
+    <div class="time-block">
+      <span class="time-label">Players arrive</span>
+      <span class="time-big">7:00<small> AM</small></span>
+      <span class="time-sub">Game at <b>8:00 AM</b></span>
+    </div>
+    <p class="where"><strong>Weathertight Field 3</strong> — Sheehan Park complex, Sun Prairie</p>
+    <div class="map-wrap">
+      <div class="map-frame"><iframe loading="lazy" title="Map to Sheehan Park, Sun Prairie"
+        src="https://maps.google.com/maps?q=Sheehan%20Park%2C%20Sun%20Prairie%2C%20WI&z=14&output=embed"></iframe></div>
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note">🥐 Hotel breakfast opens <strong>6:00 AM</strong> for us — grab-and-go, plus a <strong>$10/guest daily credit</strong> at The Bistro.</p>
+    <p class="note warn">🚗 Lots are small; the Sheehan lot can take <strong>20–30 min</strong>. Carpool, and if you have a spot, <strong>keep it</strong> — use the walking paths between fields.</p>
+  </section>
+
+  <!-- SATURDAY GAME 2 -->
+  <section class="card" id="sat-game2"
+           data-when="2026-07-11T11:30:00-05:00"
+           data-end="2026-07-11T14:30:00-05:00"
+           data-short="Firebirds game">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Sat · July 11</span>
+    <p class="kicker">Game 3 · vs Columbus Firebirds</p>
+    <div class="time-block">
+      <span class="time-label">Players arrive</span>
+      <span class="time-big">11:30<small> AM</small></span>
+      <span class="time-sub">Game at <b>12:30 PM</b></span>
+    </div>
+    <p class="where"><strong>Weathertight Field 3</strong> — same field as this morning</p>
+    <div class="map-wrap">
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note">If you kept your parking spot — nice work. Stay cool and keep the girls hydrated. 💧</p>
+  </section>
+
+  <!-- SATURDAY GAME 3 -->
+  <section class="card" id="sat-game3"
+           data-when="2026-07-11T16:00:00-05:00"
+           data-end="2026-07-11T18:30:00-05:00"
+           data-short="Bracket game">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Sat · July 11</span>
+    <p class="kicker">Game 4 · Bracket game</p>
+    <div class="time-block">
+      <span class="time-label">Players arrive</span>
+      <span class="time-big">4:00<small> PM</small></span>
+      <span class="time-sub">Game at <b>5:00 PM</b></span>
+    </div>
+    <p class="where"><strong>Field TBD</strong> — watch SportsEngine / Team Sideline for the field assignment.</p>
+    <div class="map-wrap">
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SATURDAY EVENING -->
+  <section class="card" id="sat-union"
+           data-when="2026-07-11T18:30:00-05:00"
+           data-end="2026-07-11T23:30:00-05:00"
+           data-short="The Union">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Sat · July 11</span>
+    <p class="kicker">All-Express gathering 🎶</p>
+    <h2>The Union<br>UW–Madison</h2>
+    <p class="where">Evening — live music, food, lakeside views on the Terrace.</p>
+    <div class="map-wrap">
+      <div class="map-frame"><iframe loading="lazy" title="Map to Memorial Union Terrace, Madison"
+        src="https://maps.google.com/maps?q=Memorial%20Union%20Terrace%2C%20Madison%2C%20WI&z=15&output=embed"></iframe></div>
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Memorial+Union+Terrace,+Madison,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Memorial+Union+Terrace+Madison+WI">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note warn">Bring: 🧺 picnic blanket (tables fill up) · 🩱 towel &amp; change of clothes for the girls — <strong>pier jumping is a tradition!</strong></p>
+  </section>
+
+  <!-- SUNDAY -->
+  <section class="card" id="sun"
+           data-end="2026-07-12T21:00:00-05:00"
+           data-short="Championship day">
+    <span class="badge">Up next</span>
+    <span class="day-chip">Sun · July 12</span>
+    <p class="kicker">Championship day 🏆</p>
+    <div class="time-block">
+      <span class="time-label">Bracket game</span>
+      <span class="time-big">TBD</span>
+      <span class="time-sub">Watch <b>SportsEngine / Team Sideline</b></span>
+    </div>
+    <p class="note warn">Same drill: players arrive <strong>1 hour before</strong> game time, and games can start up to 30 minutes early.</p>
+    <div class="map-wrap">
+      <div class="map-btns">
+        <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
+        <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
+      </div>
+    </div>
+    <p class="note">If we finish before other Express teams, consider staying to cheer them on — it's one of the best parts of this community. 🧡</p>
+  </section>
+
+  <!-- REFERENCE -->
+  <section class="card" id="reference">
+    <span class="day-chip">Good to know</span>
+    <details>
+      <summary>⚠️ Tournament rules</summary>
+      <ul>
+        <li>No metal cleats — molded spikes only</li>
+        <li>No pets at any field site</li>
+        <li>No music, cowbells, or noisemakers — including warmups</li>
+        <li>No chanting or singing at the other team (risk of ejection)</li>
+        <li>10U: no stealing home; 3-walk limit per inning, then coach pitch</li>
+      </ul>
+    </details>
+    <details>
+      <summary>💰 Money recap</summary>
+      <ul>
+        <li>Coach gift (optional) — due Thu July 9: Venmo @anniewrigs (0189) / Zelle anne.wrigley@gmail.com</li>
+        <li>Friday dinner + swag bags (~$20–25/family) — totals shared the Monday after, due to Annie</li>
+        <li>Hotel: $10/guest daily credit at The Bistro</li>
+      </ul>
+    </details>
+    <details>
+      <summary>🧳 Packing list</summary>
+      <ul>
+        <li><strong>Games:</strong> gear (cleats, helmet, glove, bat, bag), uniforms, water bottles, camp chairs, sunscreen, sunglasses, hat</li>
+        <li><strong>The Union (Sat eve):</strong> towel &amp; suit, change of clothes, picnic blanket</li>
+        <li><strong>Hotel:</strong> swimsuits &amp; towels, casual clothes for Friday dinner, card/cash for breakfast</li>
+        <li><strong>Money:</strong> Venmo/Zelle ready for the coach gift</li>
+      </ul>
+    </details>
+    <details>
+      <summary>🔗 Links</summary>
+      <ul>
+        <li><a href="https://forms.gle/x4ExcYoZDqxpPWJ3A">Friday dinner form</a></li>
+        <li><a href="https://www.signupgenius.com/go/409084BA4A828A2F49-63473222-express#/">SignUpGenius (reference)</a></li>
+        <li><a href="https://maps.google.com/?q=Courtyard+by+Marriott+Madison+East">Courtyard Marriott Madison East (team hotel)</a></li>
+      </ul>
+    </details>
+    <p class="contact">Questions this weekend? Paul (Veronica's dad):<br><a href="tel:+17739344607">773-934-4607</a></p>
+    <div class="stitches"></div>
+    <footer-note>GO EXPRESS! 🧡🥎</footer-note>
+  </section>
+</div>
+
+<script>
+(function () {
+  var feed = document.getElementById('feed');
+  var pill = document.getElementById('nextPill');
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section[data-end]'));
+
+  function currentEvent() {
+    var now = Date.now();
+    for (var i = 0; i < sections.length; i++) {
+      if (now < new Date(sections[i].dataset.end).getTime()) return sections[i];
+    }
+    return null;
+  }
+
+  function fmtDelta(ms) {
+    var m = Math.max(0, Math.round(ms / 60000));
+    var d = Math.floor(m / 1440);
+    var h = Math.floor((m % 1440) / 60);
+    var mm = m % 60;
+    if (d > 0) return d + 'd ' + h + 'h';
+    if (h > 0) return h + 'h ' + mm + 'm';
+    return mm + ' min';
+  }
+
+  var active = null;
+
+  function update() {
+    var now = Date.now();
+    var next = currentEvent();
+
+    sections.forEach(function (s) {
+      s.classList.remove('up-next', 'happening');
+    });
+
+    if (!next) {
+      pill.textContent = 'That’s a wrap — GO EXPRESS! 🧡';
+      pill.classList.remove('now');
+      active = null;
+      return;
+    }
+
+    var label = next.dataset.short || next.querySelector('.day-chip').textContent;
+    var when = next.dataset.when ? new Date(next.dataset.when).getTime() : null;
+    var badge = next.querySelector('.badge');
+
+    next.classList.add('up-next');
+    if (when === null || now >= when) {
+      next.classList.add('happening');
+      if (badge) badge.textContent = when === null ? 'Today' : 'Happening now';
+      pill.textContent = '▶ Now: ' + label;
+      pill.classList.add('now');
+    } else {
+      if (badge) badge.textContent = 'Up next';
+      pill.textContent = 'In ' + fmtDelta(when - now) + ': ' + label;
+      pill.classList.remove('now');
+    }
+    active = next;
+  }
+
+  function scrollToActive(smooth) {
+    if (!active) return;
+    active.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+  }
+
+  pill.addEventListener('click', function () { update(); scrollToActive(true); });
+
+  update();
+  // Jump straight to the next thing on load, once layout settles.
+  requestAnimationFrame(function () { scrollToActive(false); });
+  setInterval(update, 30000);
+})();
+</script>
+</body>
+</html>
