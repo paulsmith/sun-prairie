@@ -330,7 +330,7 @@
       <li>Fill out the <a href="https://forms.gle/x4ExcYoZDqxpPWJ3A">Friday dinner form</a></li>
       <li>Turn ON notifications in <strong>SportsEngine</strong> and <strong>Team Sideline</strong> — game times can change</li>
     </ul>
-    <p class="note warn"><strong>Driving up:</strong> preview your route. If the app shows <strong>Exit 244</strong>, drag the route in Google Maps — or just stay on until <strong>135B</strong>.</p>
+    <p class="note warn"><strong>Driving up:</strong> Exit 244 (Hwy N) is <strong>closed</strong>. Stay on the interstate to <strong>Exit 135B</strong> (US-151), take the <strong>Main St</strong> exit (101), right on Main, right on Bird St. 🚧 <a href="#construction">Construction routes</a></p>
   </section>
 
   <!-- FRIDAY GAME -->
@@ -355,7 +355,7 @@
         <a href="https://maps.apple.com/?q=Sheehan+Park+Sun+Prairie+WI">Apple Maps</a>
       </div>
     </div>
-    <p class="note">After the game: back to the <strong>Courtyard Marriott</strong> for <strong>pool time</strong> 🏊</p>
+    <p class="note">After the game: back to the <strong>Courtyard Marriott</strong> for <strong>pool time</strong> 🏊 · Heading out? 🚧 <a href="#construction">Construction routes</a></p>
   </section>
 
   <!-- FRIDAY DINNER -->
@@ -406,7 +406,7 @@
       </div>
     </div>
     <p class="note">🥐 Hotel breakfast opens <strong>6:00 AM</strong> for us — grab-and-go, plus a <strong>$10/guest daily credit</strong> at The Bistro.</p>
-    <p class="note warn">🚗 Lots are small; the Sheehan lot can take <strong>20–30 min</strong>. Carpool, and if you have a spot, <strong>keep it</strong> — use the walking paths between fields.</p>
+    <p class="note warn">🚗 Lots are small; the Sheehan lot can take <strong>20–30 min</strong>. Carpool; if you have a spot, <strong>keep it</strong> and walk. 🚧 <a href="#construction">Construction routes</a></p>
   </section>
 
   <!-- SATURDAY GAME 2 -->
@@ -446,6 +446,7 @@
       <span class="time-sub">Game at <b>5:00 PM</b></span>
     </div>
     <p class="where"><strong>Field TBD</strong> — watch SportsEngine / Team Sideline for the field assignment.</p>
+    <p class="note">Moving between fields? The Bird/Linnerud intersection is closed — cut through the Sheehan Park lot, or walk the paths. 🚧 <a href="#construction">Construction routes</a></p>
     <div class="map-wrap">
       <div class="map-btns">
         <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
@@ -487,7 +488,7 @@
       <span class="time-big">TBD</span>
       <span class="time-sub">Watch <b>SportsEngine / Team Sideline</b></span>
     </div>
-    <p class="note warn">Same drill: players arrive <strong>1 hour before</strong> game time, and games can start up to 30 minutes early.</p>
+    <p class="note warn">Same drill: players arrive <strong>1 hour before</strong> game time, and games can start up to 30 minutes early. 🚧 <a href="#construction">Construction routes</a></p>
     <div class="map-wrap">
       <div class="map-btns">
         <a href="https://maps.google.com/?q=Sheehan+Park,+Sun+Prairie,+WI">Google Maps</a>
@@ -500,6 +501,17 @@
   <!-- REFERENCE -->
   <section class="card" id="reference">
     <span class="day-chip">Good to know</span>
+    <details id="construction">
+      <summary>🚧 Construction routes &amp; parking</summary>
+      <ul>
+        <li><strong>Getting there:</strong> Exit 244 (Hwy N) is closed. Stay on the interstate to Exit 135B (US-151), take the Main St exit (101), right on Main St, right on Bird St.</li>
+        <li><strong>Bird St is one-way</strong> toward the fields between Main St and Linnerud Dr — you can drive in, but not back to town that way.</li>
+        <li><strong>Back to Main St</strong> (food, downtown): leave the complex via <strong>Craftsman Way</strong>. Walker Way also works.</li>
+        <li><strong>Bird/Linnerud intersection is closed.</strong> To drive between Sheehan 3, the youth complex, or the HS fields, cut through the <strong>Sheehan Park parking lot</strong> at Linnerud &amp; Bird.</li>
+        <li><strong>To SP East HS fields:</strong> Craftsman Way → right on Linnerud → right on Marshview → left on Learning Pl (comes up behind the softball fields).</li>
+        <li><strong>On foot:</strong> walking paths connect the complex and all Sheehan fields — often faster than re-parking. Carpool if you can.</li>
+      </ul>
+    </details>
     <details>
       <summary>⚠️ Tournament rules</summary>
       <ul>
@@ -610,9 +622,8 @@
     active = next;
   }
 
-  function scrollToActive(smooth) {
-    if (!active) return;
-    var target = active.getBoundingClientRect().top - feed.getBoundingClientRect().top
+  function scrollToEl(el, smooth) {
+    var target = el.getBoundingClientRect().top - feed.getBoundingClientRect().top
                + feed.scrollTop - header.offsetHeight;
     target = Math.max(0, Math.min(target, feed.scrollHeight - feed.clientHeight));
     feed.classList.add('no-snap');
@@ -635,7 +646,20 @@
     requestAnimationFrame(step);
   }
 
+  function scrollToActive(smooth) {
+    if (active) scrollToEl(active, smooth);
+  }
+
   pill.addEventListener('click', function () { update(); scrollToActive(true); });
+
+  var construction = document.getElementById('construction');
+  Array.prototype.forEach.call(document.querySelectorAll('a[href="#construction"]'), function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      construction.open = true;
+      scrollToEl(document.getElementById('reference'), true);
+    });
+  });
 
   update();
   // Jump straight to the next thing on load, once layout settles.
